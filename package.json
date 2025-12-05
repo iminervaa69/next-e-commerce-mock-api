@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
-    "build": "tsc && npx prisma generate && npx prisma db push",
-    "start": "node dist/server.js",
+    "build": "tsc && npx prisma generate",
+    "start": "npx prisma db push && node dist/server.js",
     "db:push": "npx prisma db push",
     "db:seed": "npx ts-node prisma/seed.ts",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
