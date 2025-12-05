@@ -136,7 +136,7 @@ app.get('/v1/couriers', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      couriers: couriers.map(c => ({
+      couriers: couriers.map((c: { courier_code: string; courier_name: string; services: unknown; logo_url: string | null }) => ({
         courier_code: c.courier_code,
         courier_name: c.courier_name,
         courier_service_code: c.services || [],
@@ -184,7 +184,7 @@ app.post('/v1/rates/couriers', async (req: Request, res: Response) => {
         })
         
         if (osrmResponse.ok) {
-          const osrmData = await osrmResponse.json()
+          const osrmData = await osrmResponse.json() as { code: string; routes?: { distance: number }[] }
           if (osrmData.code === 'Ok' && osrmData.routes?.[0]) {
             distanceKm = osrmData.routes[0].distance / 1000
             console.log(`✅ Distance calculated: ${distanceKm.toFixed(2)} km`)
@@ -481,7 +481,7 @@ app.get('/v1/trackings/:waybill_id', async (req: Request, res: Response) => {
         type: mockOrder.courier_service_code
       },
       status: mockOrder.status,
-      history: mockOrder.status_history.map(h => ({
+      history: mockOrder.status_history.map((h: { status: string; status_date: Date; note: string; location: string | null }) => ({
         status: h.status,
         date: h.status_date.toISOString(),
         note: h.note,
