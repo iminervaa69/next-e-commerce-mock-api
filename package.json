@@ -16,7 +16,7 @@
     "postinstall": "npx prisma generate"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   },
   "keywords": ["mock", "api", "biteship", "xendit", "shipping"],
   "author": "",
@@ -36,6 +36,7 @@
     "@types/cors": "^2.8.13",
     "@types/compression": "^1.7.2",
     "ts-node": "^10.9.1",
+    "tsx": "^4.7.0",
     "nodemon": "^3.0.1"
   }
 }
