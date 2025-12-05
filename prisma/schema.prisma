@@ -1,0 +1,226 @@
+// Mock API Database Schema
+// Stores mock data for Biteship, Xendit, etc.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// MOCK COURIERS
+// ==========================================
+
+model MockCourier {
+  id           String   @id @default(cuid())
+  courier_code String   @unique
+  courier_name String
+  logo_url     String?
+  is_active    Boolean  @default(true)
+  services     Json?    // Array of service codes
+  
+  rates        MockShippingRate[]
+  
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  
+  @@map("mock_couriers")
+}
+
+// ==========================================
+// MOCK SHIPPING RATES (Biteship)
+// ==========================================
+
+model MockShippingRate {
+  id                    String   @id @default(cuid())
+  
+  courier_id            String
+  courier               MockCourier @relation(fields: [courier_id], references: [id], onDelete: Cascade)
+  
+  courier_service_code  String
+  courier_service_name  String
+  description           String?
+  duration              String
+  shipment_duration_range String?
+  shipment_duration_unit String  @default("days")
+  service_type          String
+  shipping_type         String   @default("parcel")
+  
+  // Distance-based pricing
+  base_price            Int      @default(8000)
+  price_per_km          Int      @default(500)
+  min_price             Int?
+  max_price             Int?
+  
+  // Discounts/Surcharges
+  shipping_fee_discount  Int     @default(0)
+  shipping_fee_surcharge Int     @default(0)
+  
+  // Additional fees
+  insurance_fee         Int      @default(0)
+  cod_fee               Int      @default(0)
+  
+  // Availability flags
+  available_for_cod             Boolean  @default(false)
+  available_for_pod             Boolean  @default(false)
+  available_for_insurance       Boolean  @default(true)
+  available_for_instant_waybill Boolean  @default(true)
+  
+  collection_method     String[] @default(["pickup"])
+  
+  is_active            Boolean  @default(true)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  
+  @@unique([courier_id, courier_service_code])
+  @@map("mock_shipping_rates")
+}
+
+// ==========================================
+// MOCK BITESHIP ORDERS
+// ==========================================
+
+model MockBiteshipOrder {
+  id                    String   @id @default(cuid())
+  
+  order_id              String   @unique
+  order_number          String
+  
+  biteship_order_id     String   @unique
+  tracking_id           String   @unique
+  waybill_id            String   @unique
+  
+  status                String
+  
+  courier_code          String
+  courier_name          String
+  courier_service_code  String
+  courier_service_name  String
+  
+  origin_name           String
+  origin_phone          String
+  origin_address        String
+  destination_name      String
+  destination_phone     String
+  destination_address   String
+  
+  price                 Int
+  distance              Float?
+  
+  items                 Json
+  
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  picked_at             DateTime?
+  shipped_at            DateTime?
+  delivered_at          DateTime?
+  
+  status_history        MockBiteshipOrderHistory[]
+  
+  @@map("mock_biteship_orders")
+}
+
+model MockBiteshipOrderHistory {
+  id              String   @id @default(cuid())
+  order_id        String
+  order           MockBiteshipOrder @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  
+  status          String
+  status_date     DateTime
+  note            String
+  location        String?
+  
+  created_at      DateTime @default(now())
+  
+  @@map("mock_biteship_order_history")
+}
+
+// ==========================================
+// MOCK TRACKING STATUS
+// ==========================================
+
+model MockTrackingStatus {
+  id              String   @id @default(cuid())
+  waybill_id      String   @unique
+  courier_code    String
+  courier_name    String
+  status          String
+  status_date     DateTime
+  status_description String
+  receiver_name   String?
+  
+  history         MockTrackingHistory[]
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  
+  @@map("mock_tracking_status")
+}
+
+model MockTrackingHistory {
+  id              String   @id @default(cuid())
+  tracking_id     String
+  tracking        MockTrackingStatus @relation(fields: [tracking_id], references: [id], onDelete: Cascade)
+  
+  status          String
+  status_date     DateTime
+  note            String
+  location        String?
+  
+  created_at      DateTime @default(now())
+  
+  @@map("mock_tracking_history")
+}
+
+// ==========================================
+// MOCK PAYMENT (Xendit)
+// ==========================================
+
+model MockPaymentInvoice {
+  id                  String   @id @default(cuid())
+  external_id         String   @unique
+  invoice_url         String
+  amount              Int
+  status              String
+  payment_method      String?
+  paid_at             DateTime?
+  expired_at          DateTime
+  
+  customer_name       String
+  customer_email      String
+  customer_phone      String?
+  
+  description         String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  
+  @@map("mock_payment_invoices")
+}
+
+model MockPaymentChannel {
+  id              String   @id @default(cuid())
+  
+  channel_code    String   @unique
+  channel_name    String
+  channel_type    String
+  
+  logo_url        String?
+  icon_name       String?
+  
+  min_amount      Int      @default(1000)
+  max_amount      Int      @default(10000000)
+  
+  is_active       Boolean  @default(true)
+  display_order   Int      @default(0)
+  
+  description     String?
+  instructions    String?
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  
+  @@map("mock_payment_channels")
+}
